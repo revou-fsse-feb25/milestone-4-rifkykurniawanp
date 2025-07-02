@@ -1,4 +1,4 @@
-import { Account } from "./account.interface";
+import { Account } from "./interface/account.interface";
 
 export const accounts: Account[] = [
     {
