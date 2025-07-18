@@ -1,28 +1,31 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
-import { accounts } from './account.data';
-import { NotFoundException, Param, ParseIntPipe } from '@nestjs/common';
-import { CreateProductDto } from './DTO/create-product.dto';
+// src/account/account.controller.ts
 
-@Controller('account')
+import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
+import { AccountService } from './account.service';
+import { CreateAccountDto } from './DTO/create-product.dto';
+import { IAccount } from './account.interface';
+
+@Controller('accounts')
 export class AccountController {
-  @Get()
-  getAllAccounts() {
-    return accounts;
-  }
-  @Get(':id')
-  getAccountById(@Param('id', ParseIntPipe) id: number) {
-    const account = accounts.find((acc) => acc.id === id);
-    if (!account) {
-      throw new NotFoundException(`Account with ID ${id} not found`);
-    }
-    return account;
-  }
+  constructor(private readonly accountService: AccountService) {}
 
   @Post()
-  createAccount(@Body() CreateProductDto: CreateProductDto) {
-    return {
-      message: 'Account created successfully',
-      data: CreateProductDto,
-    };
+  create(@Body() dto: CreateAccountDto): Promise<IAccount> {
+    return this.accountService.create(dto);
+  }
+
+  @Get()
+  findAll(): Promise<IAccount[]> {
+    return this.accountService.findAll();
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string): Promise<IAccount> {
+    return this.accountService.findOne(+id);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string): Promise<void> {
+    return this.accountService.delete(+id);
   }
 }
