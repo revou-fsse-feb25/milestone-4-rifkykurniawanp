@@ -1,25 +1,31 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Param, NotFoundException } from '@nestjs/common';
 import { UserService } from './user.service';
+import { CreateUserDto } from './dto/request/create-user.dto';
+import { CreateUserResponseDto, UserResponseDto } from './dto/response/user-response.dto';
+import { plainToInstance } from 'class-transformer';
 
-@Controller('user')
+@Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
-  findAll() {
-    return 'This action returns all users';
+  async findAll(): Promise<UserResponseDto[]> {
+    const users = await this.userService.findAll();
+    return users.map((user) =>
+      plainToInstance(UserResponseDto, user, { excludeExtraneousValues: true }),
+    );
   }
 
   @Get(':id')
-  findOne() {
-    return 'This action returns a user';
+  async findOne(@Param('id') id: string): Promise<UserResponseDto> {
+    const user = await this.userService.findOne(+id);
+    if (!user) throw new NotFoundException(`User with id ${id} not found`);
+    return plainToInstance(UserResponseDto, user, { excludeExtraneousValues: true });
   }
 
   @Post()
-  create(@Body() createUserDto: any) {
-    if (typeof this.userService.create === 'function') {
-      return this.userService.create(createUserDto);
-    }
-    return { error: 'Create method not implemented' };
+  async create(@Body() createUserDto: CreateUserDto): Promise<CreateUserResponseDto> {
+    const newUser = await this.userService.create(createUserDto);
+    return plainToInstance(CreateUserResponseDto, newUser, { excludeExtraneousValues: true });
   }
 }

@@ -1,42 +1,37 @@
-import { PrismaService } from 'src/prisma/prisma.service';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { IUser } from './interface/users.interface';
-import { UserCreateDto } from './dto/request/create-user.dto';
+import { IUsersRepository } from './interface/users.repository.interface';
+import { CreateUserDto } from './dto/request/create-user.dto';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject('IUsersRepository')
+    private readonly usersRepository: IUsersRepository,
+  ) {}
 
-  async create(dto: UserCreateDto): Promise<IUser> {
-    return await this.prisma.user.create({ data: dto });
-  }
+ async create(dto: CreateUserDto): Promise<IUser> {
+  return this.usersRepository.create({
+    ...dto,
+    isActive: true,
+  });
+}
+
 
   async findAll(): Promise<IUser[]> {
-    return this.prisma.user.findMany({
-      include: {
-        accounts: true // Include related accounts
-      }
-    });
+    return this.usersRepository.findAll();
   }
 
   async findOne(id: number): Promise<IUser> {
-    const user = await this.prisma.user.findUnique({ 
-      where: { id },
-      include: {
-        accounts: {
-          include: {
-            transactions: true
-          }
-        }
-      }
-    });
-    if (!user) throw new NotFoundException('User not found');
+    const user = await this.usersRepository.findOne(id);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
     return user;
   }
 
   async delete(id: number): Promise<void> {
-    // Check if user exists
     await this.findOne(id);
-    await this.prisma.user.delete({ where: { id } });
+    await this.usersRepository.remove(id);
   }
 }
