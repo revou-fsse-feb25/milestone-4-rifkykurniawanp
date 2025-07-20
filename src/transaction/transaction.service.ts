@@ -1,36 +1,52 @@
-// src/transaction/transaction.service.ts
-
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Transaction } from './entities/transaction.entity';
-import { Repository } from 'typeorm';
-import { CreateTransactionDto } from './DTO/create-transaction.dto';
-import { ITransaction } from './interface/transaction.interface';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateTransactionDto } from './dto/request/create-transaction.dto.js';
+import { UpdateTransactionDto } from './dto/request/upate-transaction.dto.js';
 
 @Injectable()
 export class TransactionService {
-  constructor(
-    @InjectRepository(Transaction)
-    private readonly transactionRepo: Repository<Transaction>,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
-  async create(dto: CreateTransactionDto): Promise<ITransaction> {
-    const tx = this.transactionRepo.create(dto);
-    return await this.transactionRepo.save(tx);
+  async create(dto: CreateTransactionDto) {
+    return this.prisma.transaction.create({ data: dto });
   }
 
-  async findAll(): Promise<ITransaction[]> {
-    return this.transactionRepo.find();
-  }
-
-  async findByAccount(accountId: number): Promise<ITransaction[]> {
-    return this.transactionRepo.find({
-      where: { accountId },
-      order: { timestamp: 'DESC' },
+  async findAll() {
+    return this.prisma.transaction.findMany({
+      include: {
+        account: {
+          include: {
+            user: true
+          }
+        }
+      }
     });
   }
 
-  async delete(id: number): Promise<void> {
-    await this.transactionRepo.delete(id);
+  async findOne(id: number) {
+    const transaction = await this.prisma.transaction.findUnique({ 
+      where: { id },
+      include: {
+        account: {
+          include: {
+            user: true
+          }
+        }
+      }
+    });
+    if (!transaction) throw new NotFoundException(`Transaction with id ${id} not found`);
+    return transaction;
+  }
+
+  async update(id: number, dto: UpdateTransactionDto) {
+    // Pastikan transaction exist dulu
+    await this.findOne(id);
+    return this.prisma.transaction.update({ where: { id }, data: dto });
+  }
+
+  async remove(id: number) {
+    await this.findOne(id); // Check if exists
+    await this.prisma.transaction.delete({ where: { id } });
+    return { message: `Transaction with id ${id} removed` };
   }
 }

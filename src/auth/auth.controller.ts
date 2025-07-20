@@ -1,16 +1,34 @@
-import { Controller, Post } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { CreateAuthDto } from './dto/request/login.dto';
+import { UpdateAuthDto } from './dto/request/register.dto';
 
 @Controller('auth')
 export class AuthController {
-  @Post('login')
-  login() {
-    return {
-      message: 'Login successful',
-      data: {
-        userId: 1,
-        username: 'testuser',
-        token: 'abc123xyz', // Example token
-      },
-    };
+  constructor(private readonly authService: AuthService) {}
+
+  @Post()
+  create(@Body() createAuthDto: CreateAuthDto) {
+    return this.authService.create(createAuthDto);
+  }
+
+  @Get()
+  findAll() {
+    return this.authService.findAll();
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.authService.findOne(+id);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
+    return this.authService.update(+id, updateAuthDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.authService.remove(+id);
   }
 }

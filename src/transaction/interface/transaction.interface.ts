@@ -1,14 +1,12 @@
-// src/transaction/interfaces/transaction.interface.ts
 
-import { TransactionType } from '../entities/transaction.entity';
-import { IAccount } from 'src/account/account.interface';
 
 export interface ITransaction {
   id: number;
-  type: TransactionType;
   amount: number;
+  type: 'INCOME' | 'EXPENSE';
   description?: string;
-  account: IAccount;
+  accountId: number;
   createdAt: Date;
   updatedAt: Date;
 }
+

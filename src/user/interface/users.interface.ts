@@ -1,13 +1,10 @@
-// src/user/interfaces/user.interface.ts
-import { UserRole } from "src/user/common/user-role.enum";
-
+import { UserRole } from '../common/user-role.enum';
 
 export interface IUser {
   id: number;
-  role: UserRole;
   name: string;
   email: string;
+  role: UserRole;
   createdAt: Date;
   updatedAt: Date;
 }
-
