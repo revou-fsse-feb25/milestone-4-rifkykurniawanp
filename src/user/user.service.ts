@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
-import { IUser } from './interface/users.interface';
+import { User } from '@prisma/client';
 import { IUsersRepository } from './interface/users.repository.interface';
 import { CreateUserDto } from './dto/request/create-user.dto';
+import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class UserService {
@@ -10,19 +11,21 @@ export class UserService {
     private readonly usersRepository: IUsersRepository,
   ) {}
 
- async create(dto: CreateUserDto): Promise<IUser> {
-  return this.usersRepository.create({
-    ...dto,
-    isActive: true,
-  });
-}
+  async create(dto: CreateUserDto): Promise<User> {
+    const role = dto.role ?? UserRole.USER;
 
+    return this.usersRepository.create({
+      ...dto,
+      role,
+      isActive: dto.isActive ?? true,
+    });
+  }
 
-  async findAll(): Promise<IUser[]> {
+  async findAll(): Promise<User[]> {
     return this.usersRepository.findAll();
   }
 
-  async findOne(id: number): Promise<IUser> {
+  async findOne(id: number): Promise<User> {
     const user = await this.usersRepository.findOne(id);
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);

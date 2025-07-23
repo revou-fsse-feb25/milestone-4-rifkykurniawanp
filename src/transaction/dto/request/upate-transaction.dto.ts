@@ -1,20 +1,4 @@
-import { IsNumber, IsEnum, IsString, IsOptional } from 'class-validator';
-import { TransactionType } from 'src/transaction/common/transaction-role.enum';
+import { PartialType } from '@nestjs/mapped-types';
+import { CreateTransactionDto } from './create-transaction.dto';
 
-export class UpdateTransactionDto {
-  @IsEnum(TransactionType)
-  @IsOptional()
-  type?: TransactionType;
-
-  @IsNumber()
-  @IsOptional()
-  amount?: number;
-
-  @IsString()
-  @IsOptional()
-  description?: string;
-
-  @IsNumber()
-  @IsOptional()
-  accountId?: number;
-}
+export class UpdateTransactionDto extends PartialType(CreateTransactionDto) {}

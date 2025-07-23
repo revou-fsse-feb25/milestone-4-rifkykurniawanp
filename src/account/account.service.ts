@@ -1,40 +1,55 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Account } from './entities/account.entity';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { IAccountsRepository } from './interface/account.repository.interface';
+import { Account } from '@prisma/client';
 import { CreateAccountDto } from './dto/request/create-account.dto';
 import { UpdateAccountDto } from './dto/request/update-account.dto';
+import { Decimal } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class AccountService {
   constructor(
-    @InjectRepository(Account)
-    private readonly accountRepo: Repository<Account>,
+    @Inject('AccountRepository')
+    private readonly accountRepository: IAccountsRepository,
   ) {}
 
   async create(dto: CreateAccountDto): Promise<Account> {
-    const account = this.accountRepo.create(dto);
-    return await this.accountRepo.save(account);
+    const preparedDto = {
+      ...dto,
+      balance: dto.balance !== undefined ? new Decimal(dto.balance) : undefined,
+    };
+    return this.accountRepository.create(preparedDto);
   }
 
   async findAll(): Promise<Account[]> {
-    return await this.accountRepo.find({ relations: ['user'] }); // optional
+    return this.accountRepository.findAll();
   }
 
   async findOne(id: number): Promise<Account> {
-    const account = await this.accountRepo.findOne({ where: { id } });
-    if (!account) throw new NotFoundException('Account not found');
+    const account = await this.accountRepository.findOne(id);
+    if (!account) {
+      throw new NotFoundException(`Account with ID ${id} not found`);
+    }
     return account;
   }
 
   async update(id: number, dto: UpdateAccountDto): Promise<Account> {
-    const account = await this.findOne(id);
-    const updated = Object.assign(account, dto);
-    return await this.accountRepo.save(updated);
+    await this.findOne(id); // Pastikan akun ada
+
+    const preparedDto = {
+      ...dto,
+      balance: dto.balance !== undefined ? new Decimal(dto.balance) : undefined,
+    };
+
+    const updated = await this.accountRepository.update(id, preparedDto);
+    if (!updated) {
+      throw new NotFoundException(`Account with ID ${id} not found`);
+    }
+    return updated;
   }
 
-  async remove(id: number): Promise<void> {
-    const result = await this.accountRepo.delete(id);
-    if (result.affected === 0) throw new NotFoundException('Account not found');
+  async remove(id: number): Promise<boolean> {
+    const existing = await this.accountRepository.findOne(id);
+    if (!existing) return false;
+    return this.accountRepository.remove(id);
   }
 }

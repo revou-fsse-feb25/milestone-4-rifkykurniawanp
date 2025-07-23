@@ -1,34 +1,57 @@
-import { Controller, Post, Body, Get, Param, Patch, Delete, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Patch,
+  ParseIntPipe,
+  NotFoundException,
+  UseInterceptors,
+} from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import { CreateTransactionDto } from './dto/request/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/request/upate-transaction.dto';
+import {
+  TransactionResponseDto,
+  CreateTransactionResponseDto,
+} from './dto/response/transaction-response.dto';
+import { SerializationInterceptor } from 'src/common/interceptors/serialization.interceptor';
 
 @Controller('transactions')
+@UseInterceptors(new SerializationInterceptor(TransactionResponseDto))
 export class TransactionController {
-  constructor(private readonly service: TransactionService) {}
+  constructor(private readonly transactionService: TransactionService) {}
 
   @Post()
-  create(@Body() dto: CreateTransactionDto) {
-    return this.service.create(dto);
+  @UseInterceptors(new SerializationInterceptor(CreateTransactionResponseDto))
+  async create(@Body() dto: CreateTransactionDto) {
+    return this.transactionService.create(dto);
   }
 
   @Get()
-  findAll() {
-    return this.service.findAll();
+  async findAll() {
+    return this.transactionService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.service.findOne(id);
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.transactionService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateTransactionDto) {
-    return this.service.update(id, dto);
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateTransactionDto,
+  ) {
+    return this.transactionService.update(id, dto);
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.service.remove(id);
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    const result = await this.transactionService.remove(id);
+    if (!result) throw new NotFoundException(`Transaction with ID ${id} not found`);
+    return { success: true };
   }
 }

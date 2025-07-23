@@ -1,31 +1,44 @@
-import { Body, Controller, Get, Post, Param, NotFoundException } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Param,
+  NotFoundException,
+  ParseIntPipe,
+  UseInterceptors,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/request/create-user.dto';
-import { CreateUserResponseDto, UserResponseDto } from './dto/response/user-response.dto';
-import { plainToInstance } from 'class-transformer';
+import {
+  CreateUserResponseDto,
+  UserResponseDto,
+} from './dto/response/user-response.dto';
+import { SerializationInterceptor } from 'src/common/interceptors/serialization.interceptor';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
-  async findAll(): Promise<UserResponseDto[]> {
+  @UseInterceptors(new SerializationInterceptor(UserResponseDto))
+  async findAll() {
     const users = await this.userService.findAll();
-    return users.map((user) =>
-      plainToInstance(UserResponseDto, user, { excludeExtraneousValues: true }),
-    );
+    return users;
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<UserResponseDto> {
-    const user = await this.userService.findOne(+id);
+  @UseInterceptors(new SerializationInterceptor(UserResponseDto))
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    const user = await this.userService.findOne(id);
     if (!user) throw new NotFoundException(`User with id ${id} not found`);
-    return plainToInstance(UserResponseDto, user, { excludeExtraneousValues: true });
+    return user; // Otomatis diserialisasi & dibungkus
   }
 
   @Post()
-  async create(@Body() createUserDto: CreateUserDto): Promise<CreateUserResponseDto> {
+  @UseInterceptors(new SerializationInterceptor(CreateUserResponseDto))
+  async create(@Body() createUserDto: CreateUserDto) {
     const newUser = await this.userService.create(createUserDto);
-    return plainToInstance(CreateUserResponseDto, newUser, { excludeExtraneousValues: true });
+    return newUser; // Otomatis diserialisasi & dibungkus
   }
 }

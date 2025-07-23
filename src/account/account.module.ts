@@ -1,14 +1,20 @@
-// src/account/account.module.ts
-
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Account } from './entities/account.entity';
-import { AccountService } from './account.service';
-import { AccountController } from './account.controller';
+import { Module } from "@nestjs/common";
+import { AccountService } from "./account.service";
+import { AccountController } from "./account.controller";
+import { PrismaModule } from "src/prisma/prisma.module";
+import { AccountRepository } from "./account.repository";
+import { AuthModule } from "src/auth/auth.module";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Account])],
-  providers: [AccountService],
+  imports: [AuthModule, PrismaModule],
   controllers: [AccountController],
+  providers: [
+    AccountService,
+    {
+      provide: 'IUsersRepository',
+      useClass: AccountRepository,
+    },
+  ],
+  exports: [AccountService]
 })
 export class AccountModule {}

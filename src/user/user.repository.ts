@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { IUsersRepository } from './interface/users.repository.interface';
-import { User } from '@prisma/client';
-import { IUser } from './interface/users.interface';
+import { User, Prisma } from '@prisma/client';
 
 @Injectable()
 export class UserRepository implements IUsersRepository {
@@ -20,20 +19,19 @@ export class UserRepository implements IUsersRepository {
     return this.prisma.user.findUnique({ where: { email } });
   }
 
-  async create(data: Omit<IUser, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
-    return this.prisma.user.create({
-      data,
-    });
+  async create(data: Prisma.UserCreateInput): Promise<User> {
+    return this.prisma.user.create({ data });
   }
 
-  async update(
-    id: number,
-    data: Partial<Omit<IUser, 'id' | 'createdAt' | 'updatedAt'>>,
-  ): Promise<User | null> {
-    return this.prisma.user.update({
-      where: { id },
-      data,
-    });
+  async update(id: number, data: Prisma.UserUpdateInput): Promise<User | null> {
+    try {
+      return await this.prisma.user.update({
+        where: { id },
+        data,
+      });
+    } catch {
+      return null;
+    }
   }
 
   async remove(id: number): Promise<boolean> {
