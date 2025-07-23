@@ -14,7 +14,7 @@ export class AccountRepository implements IAccountsRepository {
 
   async findAll(): Promise<Account[]> {
     return this.prisma.account.findMany({
-      include: { user: true }, // optional
+      include: { user: true },
     });
   }
 
@@ -43,7 +43,7 @@ export class AccountRepository implements IAccountsRepository {
     return this.prisma.account.create({
       data: {
         ...data,
-        balance: new Decimal(data.balance ?? 0),
+        balance: this.toDecimal(data.balance),
       },
     });
   }
@@ -53,18 +53,28 @@ export class AccountRepository implements IAccountsRepository {
       where: { id },
       data: {
         ...data,
-        balance: data.balance !== undefined ? new Decimal(data.balance) : undefined,
+        balance: this.toOptionalDecimal(data.balance),
       },
     });
   }
 
   async remove(id: number): Promise<boolean> {
-  try {
-    await this.prisma.account.delete({ where: { id } });
-    return true;
-  } catch {
-    return false;
+    try {
+      await this.prisma.account.delete({ where: { id } });
+      return true;
+    } catch {
+      return false;
+    }
   }
-}
 
+  private toDecimal(value: number | Decimal | undefined | null): Decimal {
+    if (value instanceof Decimal) return value;
+    if (typeof value === 'number') return new Decimal(value);
+    return new Decimal(0);
+  }
+
+  private toOptionalDecimal(value?: number | Decimal | null): Decimal | undefined {
+    if (value === null || value === undefined) return undefined;
+    return this.toDecimal(value);
+  }
 }

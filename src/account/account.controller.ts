@@ -20,7 +20,7 @@ import {
 import { SerializationInterceptor } from 'src/common/interceptors/serialization.interceptor';
 
 @Controller('accounts')
-@UseInterceptors(new SerializationInterceptor(AccountResponseDto)) // Default untuk semua
+@UseInterceptors(new SerializationInterceptor(AccountResponseDto))
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 

@@ -4,12 +4,14 @@ import { Transaction } from '@prisma/client';
 import { CreateTransactionDto } from './dto/request/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/request/upate-transaction.dto';
 import { Decimal } from '@prisma/client/runtime/library';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class TransactionService {
   constructor(
     @Inject('TransactionRepository')
     private readonly transactionRepository: ITransactionsRepository,
+    private readonly prisma: PrismaService,
   ) {}
 
   async create(dto: CreateTransactionDto): Promise<Transaction> {
@@ -49,4 +51,21 @@ export class TransactionService {
     if (!existing) return false;
     return this.transactionRepository.remove(id);
   }
+
+  async testDecimalFields() {
+    console.log('=== TESTING DECIMAL FIELDS ===');
+    
+    const account = await this.prisma.account.findFirst();
+    console.log('Raw account from DB:', account);
+    console.log('Balance type:', typeof account?.balance);
+    console.log('Balance value:', account?.balance);
+    
+    const transaction = await this.prisma.transaction.findFirst();
+    console.log('Raw transaction from DB:', transaction);
+    console.log('Amount type:', typeof transaction?.amount);
+    console.log('Amount value:', transaction?.amount);
+    
+    console.log('=== END TEST ===');
+  }
+  
 }
