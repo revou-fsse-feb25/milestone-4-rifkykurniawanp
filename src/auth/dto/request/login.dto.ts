@@ -1,14 +1,10 @@
-export class CreateAuthDto {}
-
+import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
 
 export class LoginDto {
-  @ApiProperty({ example: 'user@example.com', description: 'User email address' })
-  @IsEmail({}, { message: 'Please provide a valid email address' })
-  @IsNotEmpty({ message: 'Email is required' })
+  @IsEmail()
   email: string;
 
-  @ApiProperty({ example: 'password123', description: 'User password' })
-  @IsString({ message: 'Password must be a string' })
-  @IsNotEmpty({ message: 'Password is required' })
+  @IsNotEmpty()
+  @MinLength(6)
   password: string;
 }

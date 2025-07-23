@@ -1,10 +1,11 @@
-export class AuthResponseDto {
-  @ApiProperty({ description: 'JWT access token' })
-  access_token: string;
+// 
 
-  @ApiProperty({ description: 'User information' })
-  user: {
-    id: string;
-    email: string;
-    name?: string;
-  };
+import { ApiProperty } from '@nestjs/swagger';
+
+export class AuthResponseDto {
+  @ApiProperty()
+  accessToken: string;
+
+  @ApiProperty()
+  tokenType: string = 'Bearer';
+}
