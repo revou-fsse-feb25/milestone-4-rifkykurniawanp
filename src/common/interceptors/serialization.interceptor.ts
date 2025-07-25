@@ -7,7 +7,6 @@ import {
 import { Observable } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { plainToInstance } from 'class-transformer';
-// import { SerializationResponse } from './serialization.response';
 
 @Injectable()
 export class SerializationInterceptor<T> implements NestInterceptor {
@@ -18,28 +17,17 @@ export class SerializationInterceptor<T> implements NestInterceptor {
       map((data) => {
         try {
           let serialized: T | T[] | null = null;
-          
+
           if (data) {
+            const transformOptions = {
+              excludeExtraneousValues: true,
+              enableImplicitConversion: true,
+            };
+
             if (Array.isArray(data)) {
-              serialized = data.map((item, index) => {
-                try {
-                  return plainToInstance(this.dtoClass, item, {
-                    excludeExtraneousValues: true,
-                  });
-                } catch (itemError) {
-                  console.error(
-                    `[SerializationInterceptor] Error transforming array item at index ${index}:`,
-                    itemError,
-                    'Item data:',
-                    item
-                  );
-                  throw itemError;
-                }
-              });
+              serialized = plainToInstance(this.dtoClass, data, transformOptions) as T[];
             } else {
-              serialized = plainToInstance(this.dtoClass, data, {
-                excludeExtraneousValues: true,
-              });
+              serialized = plainToInstance(this.dtoClass, data, transformOptions);
             }
           }
 
@@ -47,7 +35,7 @@ export class SerializationInterceptor<T> implements NestInterceptor {
             success: true,
             data: serialized,
           };
-          
+
           return response;
         } catch (error) {
           console.error(
@@ -61,7 +49,7 @@ export class SerializationInterceptor<T> implements NestInterceptor {
       }),
       catchError((err) => {
         console.error('[SerializationInterceptor] Caught error in stream:', err);
-        throw err; // Re-throw to maintain error handling flow
+        throw err;
       })
     );
   }

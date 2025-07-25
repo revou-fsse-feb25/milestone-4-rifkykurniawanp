@@ -18,8 +18,11 @@ import {
   CreateTransactionResponseDto,
 } from './dto/response/transaction-response.dto';
 import { SerializationInterceptor } from 'src/common/interceptors/serialization.interceptor';
+import { AuthGuardRoles } from 'src/auth/decorator/auth.decorator';
+import { UserRole } from '@prisma/client';
 
 @Controller('transactions')
+@AuthGuardRoles(UserRole.USER, UserRole.ADMIN)
 @UseInterceptors(new SerializationInterceptor(TransactionResponseDto))
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
@@ -41,6 +44,7 @@ export class TransactionController {
   }
 
   @Patch(':id')
+  @AuthGuardRoles(UserRole.ADMIN)
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateTransactionDto,
@@ -49,6 +53,7 @@ export class TransactionController {
   }
 
   @Delete(':id')
+  @AuthGuardRoles(UserRole.ADMIN)
   async remove(@Param('id', ParseIntPipe) id: number) {
     const result = await this.transactionService.remove(id);
     if (!result) throw new NotFoundException(`Transaction with ID ${id} not found`);

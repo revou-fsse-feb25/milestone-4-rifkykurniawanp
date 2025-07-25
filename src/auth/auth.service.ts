@@ -4,8 +4,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/request/register.dto';
 import { LoginDto } from './dto/request/login.dto';
 import * as bcrypt from 'bcrypt';
-import { AuthResponseDto } from './dto/response/auth-response';
-import { AuthError } from './common/auth.enum';
+import { AuthResponseDto } from './dto/response/auth-response.dto';
+import { AuthError } from './enum/auth-error.enum';
 
 @Injectable()
 export class AuthService {

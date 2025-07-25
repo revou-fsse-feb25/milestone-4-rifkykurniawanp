@@ -1,7 +1,5 @@
-// users.repository.interface.ts
-import { User } from '@prisma/client';
 
-// Gunakan Prisma User langsung sebagai base type
+import { User } from '@prisma/client';
 export type UserInput = Omit<User, 'id' | 'createdAt' | 'updatedAt'>;
 export type UserUpdateInput = Partial<UserInput>;
 

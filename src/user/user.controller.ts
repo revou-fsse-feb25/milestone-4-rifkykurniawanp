@@ -15,30 +15,33 @@ import {
   UserResponseDto,
 } from './dto/response/user-response.dto';
 import { SerializationInterceptor } from 'src/common/interceptors/serialization.interceptor';
+import { AuthGuardRoles } from 'src/auth/decorator/auth.decorator';
+import { UserRole } from '@prisma/client';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
+  @AuthGuardRoles(UserRole.ADMIN)
   @UseInterceptors(new SerializationInterceptor(UserResponseDto))
   async findAll() {
-    const users = await this.userService.findAll();
-    return users;
+    return this.userService.findAll();
   }
 
   @Get(':id')
+  @AuthGuardRoles(UserRole.ADMIN)
   @UseInterceptors(new SerializationInterceptor(UserResponseDto))
   async findOne(@Param('id', ParseIntPipe) id: number) {
     const user = await this.userService.findOne(id);
     if (!user) throw new NotFoundException(`User with id ${id} not found`);
-    return user; // Otomatis diserialisasi & dibungkus
+    return user;
   }
 
   @Post()
+  @AuthGuardRoles(UserRole.ADMIN)
   @UseInterceptors(new SerializationInterceptor(CreateUserResponseDto))
   async create(@Body() createUserDto: CreateUserDto) {
-    const newUser = await this.userService.create(createUserDto);
-    return newUser; // Otomatis diserialisasi & dibungkus
+    return this.userService.create(createUserDto);
   }
 }

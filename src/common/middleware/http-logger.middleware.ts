@@ -1,6 +1,6 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-import { formatWIBDateTime } from '../utils';
+import { formatWIBDateTime } from '../utils/date-utils';
 
 @Injectable()
 export class LoggerMiddleware implements NestMiddleware {

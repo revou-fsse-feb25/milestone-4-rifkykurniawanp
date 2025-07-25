@@ -1,7 +1,7 @@
 import { Expose, Transform, Type } from 'class-transformer';
 import { TransactionStatus, TransactionType, AccountStatus, AccountType } from '@prisma/client';
-import { formatWIBDateTime } from 'src/common/utils';
-import { safeDecimalToNumber } from 'src/common/utils/decimal-transform';
+import { formatWIBDateTime } from 'src/common/utils/date-utils';
+import { safeDecimalToNumber } from 'src/common/utils/number-utils';
 
 export class BaseTransactionResponseDto {
   @Expose()

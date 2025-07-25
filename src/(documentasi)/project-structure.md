@@ -1,7 +1,8 @@
 project-root/
 ├── prisma/
 │   ├── schema.prisma
-│   └── seed.ts
+│   ├── seed.ts
+│   └── migrations/
 │
 ├── src/
 │   ├── main.ts

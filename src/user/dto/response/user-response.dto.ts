@@ -1,6 +1,6 @@
 import { Expose, Transform } from 'class-transformer';
 import { UserRole } from '@prisma/client';
-import { formatWIBDateTime } from 'src/common/utils';
+import { formatWIBDateTime } from 'src/common/utils/date-utils';
 
 export class BaseUserResponseDto {
   @Expose()
