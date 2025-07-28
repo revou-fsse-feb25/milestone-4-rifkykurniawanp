@@ -3,7 +3,7 @@ import { TransactionController } from './transaction.controller';
 import { TransactionService } from './transaction.service';
 import { CreateTransactionDto } from './dto/request/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/request/upate-transaction.dto';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { mockTransactionList, createTransactionDto, updateTransactionDto } from '../../test/mocks/transactions.mock';
 
 describe('TransactionController', () => {
@@ -11,22 +11,11 @@ describe('TransactionController', () => {
   let service: TransactionService;
 
   const mockTransactionService = {
-    create: jest.fn().mockResolvedValue({ id: 123, ...createTransactionDto }),
-    findAll: jest.fn().mockResolvedValue(mockTransactionList),
-    findOne: jest.fn().mockImplementation((id: number) => {
-      const found = mockTransactionList.find(tx => tx.id === id);
-      if (!found) throw new NotFoundException(`Transaction with ID ${id} not found`);
-      return Promise.resolve(found);
-    }),
-    update: jest.fn().mockImplementation((id: number, dto: UpdateTransactionDto) => {
-      const found = mockTransactionList.find(tx => tx.id === id);
-      if (!found) throw new NotFoundException(`Transaction with ID ${id} not found`);
-      return Promise.resolve({ ...found, ...dto });
-    }),
-    remove: jest.fn().mockImplementation((id: number) => {
-      const exists = mockTransactionList.find(tx => tx.id === id);
-      return Promise.resolve(!!exists);
-    }),
+    create: jest.fn(),
+    findAll: jest.fn(),
+    findOne: jest.fn(),
+    update: jest.fn(),
+    remove: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -42,61 +31,176 @@ describe('TransactionController', () => {
 
     controller = module.get<TransactionController>(TransactionController);
     service = module.get<TransactionService>(TransactionService);
+
+    // Clear all mocks before each test
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
+    expect(service).toBeDefined();
   });
 
   describe('create()', () => {
-    it('should create a new transaction', async () => {
+    const expectedResult = { id: 123, ...createTransactionDto };
+
+    it('should create a new transaction successfully', async () => {
+      mockTransactionService.create.mockResolvedValue(expectedResult);
+
       const result = await controller.create(createTransactionDto);
-      expect(result).toHaveProperty('id');
+
+      expect(result).toEqual(expectedResult);
+      expect(service.create).toHaveBeenCalledWith(createTransactionDto);
+      expect(service.create).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle service errors during creation', async () => {
+      const error = new BadRequestException('Invalid transaction data');
+      mockTransactionService.create.mockRejectedValue(error);
+
+      await expect(controller.create(createTransactionDto))
+        .rejects.toThrow(BadRequestException);
+      
       expect(service.create).toHaveBeenCalledWith(createTransactionDto);
     });
   });
 
   describe('findAll()', () => {
     it('should return a list of transactions', async () => {
+      mockTransactionService.findAll.mockResolvedValue(mockTransactionList);
+
       const result = await controller.findAll();
+
       expect(result).toEqual(mockTransactionList);
-      expect(service.findAll).toHaveBeenCalled();
+      expect(result).toHaveLength(mockTransactionList.length);
+      expect(service.findAll).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return empty array when no transactions exist', async () => {
+      mockTransactionService.findAll.mockResolvedValue([]);
+
+      const result = await controller.findAll();
+
+      expect(result).toEqual([]);
+      expect(Array.isArray(result)).toBe(true);
+      expect(service.findAll).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('findOne()', () => {
+    const transactionId = 1;
+    const expectedTransaction = mockTransactionList[0];
+
     it('should return a transaction by id', async () => {
-      const result = await controller.findOne(1);
-      expect(result).toEqual(mockTransactionList[0]);
-      expect(service.findOne).toHaveBeenCalledWith(1);
+      mockTransactionService.findOne.mockResolvedValue(expectedTransaction);
+
+      const result = await controller.findOne(transactionId);
+
+      expect(result).toEqual(expectedTransaction);
+      expect(service.findOne).toHaveBeenCalledWith(transactionId);
+      expect(service.findOne).toHaveBeenCalledTimes(1);
     });
 
-    it('should throw NotFoundException if not found', async () => {
-      await expect(controller.findOne(999)).rejects.toThrow(NotFoundException);
+    it('should throw NotFoundException when transaction not found', async () => {
+      const notFoundError = new NotFoundException(`Transaction with ID ${transactionId} not found`);
+      mockTransactionService.findOne.mockRejectedValue(notFoundError);
+
+      await expect(controller.findOne(transactionId))
+        .rejects.toThrow(NotFoundException);
+      
+      expect(service.findOne).toHaveBeenCalledWith(transactionId);
+    });
+
+    it('should handle invalid id parameter', async () => {
+      const invalidId = -1;
+      const error = new BadRequestException('Invalid transaction ID');
+      mockTransactionService.findOne.mockRejectedValue(error);
+
+      await expect(controller.findOne(invalidId))
+        .rejects.toThrow(BadRequestException);
     });
   });
 
   describe('update()', () => {
-    it('should update a transaction', async () => {
-      const result = await controller.update(1, updateTransactionDto);
+    const transactionId = 1;
+    const expectedResult = { ...mockTransactionList[0], ...updateTransactionDto };
+
+    it('should update a transaction successfully', async () => {
+      mockTransactionService.update.mockResolvedValue(expectedResult);
+
+      const result = await controller.update(transactionId, updateTransactionDto);
+
+      expect(result).toEqual(expectedResult);
       expect(result).toHaveProperty('status', updateTransactionDto.status);
-      expect(service.update).toHaveBeenCalledWith(1, updateTransactionDto);
+      expect(service.update).toHaveBeenCalledWith(transactionId, updateTransactionDto);
+      expect(service.update).toHaveBeenCalledTimes(1);
     });
 
-    it('should throw NotFoundException if update fails', async () => {
-      await expect(controller.update(999, updateTransactionDto)).rejects.toThrow(NotFoundException);
+    it('should throw NotFoundException when updating non-existent transaction', async () => {
+      const notFoundError = new NotFoundException(`Transaction with ID ${transactionId} not found`);
+      mockTransactionService.update.mockRejectedValue(notFoundError);
+
+      await expect(controller.update(transactionId, updateTransactionDto))
+        .rejects.toThrow(NotFoundException);
+      
+      expect(service.update).toHaveBeenCalledWith(transactionId, updateTransactionDto);
+    });
+
+    it('should handle validation errors during update', async () => {
+      const validationError = new BadRequestException('Invalid update data');
+      mockTransactionService.update.mockRejectedValue(validationError);
+
+      await expect(controller.update(transactionId, updateTransactionDto))
+        .rejects.toThrow(BadRequestException);
     });
   });
 
   describe('remove()', () => {
-    it('should return success true if deleted', async () => {
-      const result = await controller.remove(1);
+    const transactionId = 1;
+
+    it('should delete a transaction successfully', async () => {
+      // Assuming your controller returns { success: true } for successful deletion
+      mockTransactionService.remove.mockResolvedValue(true);
+
+      const result = await controller.remove(transactionId);
+
       expect(result).toEqual({ success: true });
-      expect(service.remove).toHaveBeenCalledWith(1);
+      expect(service.remove).toHaveBeenCalledWith(transactionId);
+      expect(service.remove).toHaveBeenCalledTimes(1);
     });
 
-    it('should throw NotFoundException if transaction not found', async () => {
-      await expect(controller.remove(999)).rejects.toThrow(NotFoundException);
+    it('should throw NotFoundException when deleting non-existent transaction', async () => {
+      const notFoundError = new NotFoundException(`Transaction with ID ${transactionId} not found`);
+      mockTransactionService.remove.mockRejectedValue(notFoundError);
+
+      await expect(controller.remove(transactionId))
+        .rejects.toThrow(NotFoundException);
+      
+      expect(service.remove).toHaveBeenCalledWith(transactionId);
+    });
+
+    it('should handle database errors during deletion', async () => {
+      const dbError = new Error('Database connection failed');
+      mockTransactionService.remove.mockRejectedValue(dbError);
+
+      await expect(controller.remove(transactionId))
+        .rejects.toThrow('Database connection failed');
+    });
+  });
+
+  describe('Integration scenarios', () => {
+    it('should handle multiple operations correctly', async () => {
+      // Test that multiple calls work independently
+      mockTransactionService.findAll.mockResolvedValue(mockTransactionList);
+      mockTransactionService.findOne.mockResolvedValue(mockTransactionList[0]);
+
+      const allTransactions = await controller.findAll();
+      const singleTransaction = await controller.findOne(1);
+
+      expect(allTransactions).toHaveLength(mockTransactionList.length);
+      expect(singleTransaction).toEqual(mockTransactionList[0]);
+      expect(service.findAll).toHaveBeenCalledTimes(1);
+      expect(service.findOne).toHaveBeenCalledTimes(1);
     });
   });
 });

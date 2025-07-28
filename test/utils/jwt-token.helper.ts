@@ -1,4 +1,4 @@
-import request from 'supertest';
+import * as request from 'supertest';
 
 export async function getJwtToken(app, email: string, password: string): Promise<string> {
   const response = await request(app.getHttpServer())

@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { IUsersRepository } from './interface/users.repository.interface';
 import { CreateUserDto } from './dto/request/create-user.dto';
+import { UserUpdateDto } from './dto/request/update-user.dto';
 import { UserRole } from '@prisma/client';
 
 @Injectable()
@@ -33,8 +34,13 @@ export class UserService {
     return user;
   }
 
+  async update(id: number, data: UserUpdateDto): Promise<User | null> {
+    await this.findOne(id); // Validasi user ada
+    return this.usersRepository.update(id, data);
+  }
+
   async delete(id: number): Promise<void> {
-    await this.findOne(id);
+    await this.findOne(id); // Validasi user ada
     await this.usersRepository.remove(id);
   }
 }
