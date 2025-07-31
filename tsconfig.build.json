@@ -1,4 +1,25 @@
 {
   "extends": "./tsconfig.json",
-  "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
+  "compilerOptions": {
+    "outDir": "./dist",
+    "noEmitOnError": false,
+    "sourceMap": false,
+    "declaration": false,
+    "removeComments": true
+  },
+  "exclude": [
+    "node_modules",
+    "test",
+    "dist",
+    "**/*spec.ts",
+    "**/*test.ts",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "jest.config.ts",
+    "jest-e2e.json"
+  ],
+  "include": [
+    "src/**/*",
+    "prisma/seed.ts"
+  ]
 }
