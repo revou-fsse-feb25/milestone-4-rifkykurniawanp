@@ -1,7 +1,7 @@
 import { Expose, Transform, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { AccountStatus, AccountType } from '@prisma/client';
-import { formatWIBDateTime } from 'src/common/utils/date-utils';
+import { formatWIBDateTime } from '../../../common/utils/date-utils';
 
 function safeToNumber(value: unknown): number {
   if (value === null || typeof value === 'undefined') return 0;

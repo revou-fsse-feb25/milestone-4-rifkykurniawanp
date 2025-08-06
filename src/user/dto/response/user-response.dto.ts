@@ -1,6 +1,6 @@
 import { Expose, Transform } from 'class-transformer';
 import { UserRole } from '@prisma/client';
-import { formatWIBDateTime } from 'src/common/utils/date-utils';
+import { formatWIBDateTime } from '../../../common/utils/date-utils';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class BaseUserResponseDto {

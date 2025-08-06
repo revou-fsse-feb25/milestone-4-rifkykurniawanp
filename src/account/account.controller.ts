@@ -18,7 +18,7 @@ import {
   CreateAccountResponseDto,
 } from './dto/response/account-response.dto';
 import { SerializationInterceptor } from 'src/common/interceptors/serialization.interceptor';
-import { AuthGuardRoles } from 'src/auth/decorator/auth.decorator';
+import { AuthGuardRoles } from '../auth/decorator/auth.decorator';
 import { UserRole } from '@prisma/client';
 import {
   ApiTags,

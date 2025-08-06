@@ -4,7 +4,7 @@ import { Account } from '@prisma/client';
 import { CreateAccountDto } from './dto/request/create-account.dto';
 import { UpdateAccountDto } from './dto/request/update-account.dto';
 import { Decimal } from '@prisma/client/runtime/library';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AccountService {

@@ -4,7 +4,7 @@ import { Transaction } from '@prisma/client';
 import { CreateTransactionDto } from './dto/request/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/request/upate-transaction.dto';
 import { Decimal } from '@prisma/client/runtime/library';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class TransactionService {

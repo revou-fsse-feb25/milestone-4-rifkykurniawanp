@@ -1,7 +1,7 @@
 import { Expose, Transform, Type } from 'class-transformer';
 import { TransactionStatus, TransactionType, AccountStatus, AccountType } from '@prisma/client';
-import { formatWIBDateTime } from 'src/common/utils/date-utils';
-import { safeDecimalToNumber } from 'src/common/utils/number-utils';
+import { formatWIBDateTime } from '../../../common/utils/date-utils';
+import { safeDecimalToNumber } from '../../../common/utils/number-utils';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class BaseTransactionResponseDto {
